@@ -1,0 +1,45 @@
+﻿@page "/AddBook"
+@using LibraryWebApp.Model
+@using LibraryWebApp.Service
+@inject IBookService BookJSONService
+@inject NavigationManager NavigationManager
+
+<h3>Add Book</h3>
+
+<EditForm Model="@newBookItem" OnValidSubmit="@AddNewBook">
+    <DataAnnotationsValidator/> <ValidationSummary/>
+    <div class="form-group"> ISBN:<br/> <InputTextArea rows="4" @bind-Value="newBookItem.ISBN"/> </div>
+    <div class="form-group"> Room number:<br/> <InputNumber @bind-Value="room"/> </div>
+    <div class="form-group"> Row number:<br/> <InputNumber @bind-Value="row"/> </div>
+    <div class="form-group"> Shelf number:<br/> <InputNumber @bind-Value="bookshelf"/> </div>
+    
+
+    <p class="actions">
+        <button class="btn btn-outline-dark" type="submit">Create</button>
+    </p>
+</EditForm>
+
+@code {
+    private int bookshelf;
+    private int row;
+    private int room;
+    private Book newBookItem = new Book();
+    
+    private void AddNewBook()
+    {
+        newBookItem.Room = new Room
+        {
+            RoomNumber = room,
+            Row = new Row
+            {
+                RowNumber = row,
+                Bookshelf = new Bookshelf
+                {
+                    BookshelfNumber = bookshelf
+                }
+            }
+        };
+        BookJSONService.AddBook(newBookItem);
+        NavigationManager.NavigateTo("/Books");
+    }
+}

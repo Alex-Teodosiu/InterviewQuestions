@@ -1,0 +1,138 @@
+﻿@page "/Books"
+@using LibraryWebApp.Model
+@using LibraryWebApp.Service
+@inject IBookService BookJSONService
+
+<h3>Books</h3>
+
+<h1>Here is a list of all books</h1>
+
+
+@if (books == null) {
+    //if the list has not been initialized then this
+        <p>
+             <em>Loading...</em>
+        </p>
+        
+    //If there are no books then this
+    } else if (!books.Any()) {
+        <p>
+             <em>No ToDo items exist. Please add some.</em>
+        </p>
+        
+    } else {
+        <p>
+            Filter by name: <input type="text" @oninput="@(arg => FilterByISBN(arg))" style="width: 150px"/>
+            Filter by room number: <input type="number" @oninput="@(arg => FilterByRoom(arg))" style="width: 50px">
+            row number: <input type="number" @oninput="@(arg => FilterByRow(arg))" style="width: 50px">
+            shelf number: <input type="number" @oninput="@(arg => FilterByShelf(arg))" style="width: 50px">
+            Clear search specifications: <button class="btn btn-primary" @onclick="Reset">Reset</button>
+        </p>
+
+
+
+        <table class="table">
+            <thead> <tr> <th>ISBN</th> <th>Room</th> <th>Row</th> <th>Shelf</th> </tr> </thead>
+            <tbody>
+            @foreach (var item in BooksToShow)
+            {
+                <tr> <td>@item.ISBN</td> <td>@item.Room.RoomNumber</td> <td>@item.Room.Row.RowNumber</td> <td>@item.Room.Row.Bookshelf.BookshelfNumber</td> </tr>
+            }
+            </tbody>
+        </table>
+
+
+
+@code {
+    private IList<Book> books;
+    private string? ISBN;
+    private int? room;
+    private int? row;
+    private int? shelf;
+    private IList<Book> BooksToShow;
+
+    protected override async Task OnInitializedAsync()
+    {
+        books = BookJSONService.GetBooks();
+        BooksToShow = books;
+    }
+    
+    void OnInput(ChangeEventArgs eventArgs)
+    {
+        BooksToShow = books.Where(e => e.ISBN.StartsWith(eventArgs.ToString())).ToList();
+    }
+
+    private void ExecuteFilter()
+    {
+        BooksToShow = books.Where(book =>  ((room != null && book.Room.RoomNumber == room) || room == null)
+                                        && ((row != null && book.Room.Row.RowNumber == row) || row == null)
+                                        && ((shelf != null && book.Room.Row.Bookshelf.BookshelfNumber == shelf) || shelf == null)
+                                        && ((ISBN != null && book.ISBN.Contains(ISBN)) || ISBN == null)).ToList();
+
+    }
+
+    private void Reset()
+    {
+        BooksToShow = books;
+    }
+    
+    private void FilterByISBN(ChangeEventArgs changeEventArgs)
+    {
+        ISBN = null;
+        try
+        {
+            ISBN = changeEventArgs.Value.ToString();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        ExecuteFilter();
+    }
+
+
+    private void FilterByRoom(ChangeEventArgs changeEventArgs)
+    {
+        room = null;
+        try
+        {
+            room = int.Parse(changeEventArgs.Value.ToString());
+        }
+        catch (Exception e)
+        {
+        }
+        ExecuteFilter();
+    }
+    
+    private void FilterByRow(ChangeEventArgs changeEventArgs)
+    {
+        row = null;
+        try
+        {
+            row = int.Parse(changeEventArgs.Value.ToString());
+        }
+        catch (Exception e)
+        {
+        }
+        ExecuteFilter();
+    }
+
+    private void FilterByShelf(ChangeEventArgs changeEventArgs)
+    {
+        shelf = null;
+        try
+        {
+            shelf = int.Parse(changeEventArgs.Value.ToString());
+        }
+        catch (Exception e)
+        {
+        }
+        ExecuteFilter();
+    }
+
+
+}
+
+
+}
